@@ -9,21 +9,22 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JTextArea;
 
 public class TestGui extends JFrame implements ActionListener {
 
-    private final JTextField textField1;
+    private final JTextField display;
     private final JButton[] numberButtons = new JButton[10];
     private final JButton[] operationsButtons = new JButton[6];
     private final JPanel panelButtons;
     private final JPanel topPanel;
-    private final JTextArea operationsHistory;
     private final String[] ops = {"C", "/", "*", "-", "+", "="};
 
-    private double actualNumber = 0;
     private double previousNumber = 0;
+    private double actualNumber = 0;
+    private double result = 0;
     private String operation = "";
     private boolean newNumber = true;
 
@@ -32,9 +33,8 @@ public class TestGui extends JFrame implements ActionListener {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         topPanel = new JPanel(new BorderLayout());
-        textField1 = new JTextField();
+        display = new JTextField();
         panelButtons = new JPanel();
-        operationsHistory = new JTextArea();
 
         for (int i = 0; i < numberButtons.length; i++) {
             numberButtons[i] = new JButton(String.valueOf(i));
@@ -51,10 +51,12 @@ public class TestGui extends JFrame implements ActionListener {
 
         }
 
-        textField1.setPreferredSize(new Dimension(100, 100));
-        topPanel.add(textField1, BorderLayout.CENTER);
+        display.setPreferredSize(new Dimension(100, 100));
+        topPanel.add(display, BorderLayout.CENTER);
         add(topPanel, BorderLayout.NORTH);
-        textField1.setEditable(false);
+        display.setEditable(false);
+        display.setHorizontalAlignment(JTextField.RIGHT);
+        display.setFont(new Font("SansSerif", Font.BOLD, 32));
 
         add(panelButtons);
 
@@ -110,22 +112,28 @@ public class TestGui extends JFrame implements ActionListener {
 
     private void pressNumber(String num) {
         if (!newNumber) {
-            textField1.setText(textField1.getText() + num);
+            display.setText(display.getText() + num);
         } else {
-            textField1.setText(num);
+            display.setText(num);
             newNumber = false;
         }
     }
 
     private void pressOperation(String op) {
-        previousNumber = Double.parseDouble(textField1.getText());
+        previousNumber = Double.parseDouble(display.getText());
         operation = op;
         newNumber = true;
     }
 
     private void calculateResult() {
-        actualNumber = Double.parseDouble(textField1.getText());
-        double result = 0;
+        if (operation == null || operation.isEmpty()) {
+            return;
+        }
+
+        String text = display.getText();
+
+        double actualNumber = Double.parseDouble(text);
+        result = 0;
 
         switch (operation) {
             case "+" ->
@@ -138,12 +146,19 @@ public class TestGui extends JFrame implements ActionListener {
                 result = previousNumber / actualNumber;
         }
 
-        textField1.setText(String.valueOf(result));
+        if (result == Math.floor(result)) {
+            display.setText(String.valueOf((int) result));
+        } else {
+            display.setText(String.valueOf(result));
+        }
+
+        previousNumber = result;
         newNumber = true;
+        operation = null;
     }
 
     private void clean() {
-        textField1.setText("0");
+        display.setText("0");
         actualNumber = 0;
         previousNumber = 0;
         operation = "";
